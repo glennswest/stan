@@ -22,6 +22,12 @@ A Python service that manages stock market data updates and processing tasks.
 - Updates `stocks` table closing prices and complete `daily` OHLCV data
 - Provides comprehensive daily trading summary
 
+### Task 4: Intraday Price Tracking
+- Tracks stock prices every 15 minutes during market hours (9:30 AM - 4:00 PM EST)
+- Captures real-time price movements for intraday analysis
+- Populates `tracking` table with timestamped price points
+- Only runs on trading days with automatic market hours validation
+
 ## Setup
 
 1. **Install Dependencies**:
@@ -54,13 +60,15 @@ python main.py
 The service will schedule all tasks:
 - **9:00 AM EST**: Task 1 - Daily stock updates
 - **9:35 AM EST**: Task 2 - Opening price updates  
+- **Every 15 min**: Task 4 - Intraday tracking (9:30 AM - 4:00 PM EST)
 - **4:05 PM EST**: Task 3 - Closing price updates
 
 ### Run Task Manually
 ```bash
 python main.py 1  # Run Task 1 manually (Daily stock updates)
-python main.py 2  # Run Task 2 manually (Opening price updates)
+python main.py 2  # Run Task 2 manually (Opening price updates)  
 python main.py 3  # Run Task 3 manually (Closing price updates)
+python main.py 4  # Run Task 4 manually (Intraday price tracking)
 ```
 
 ## Database Schema

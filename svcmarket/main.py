@@ -19,6 +19,7 @@ load_dotenv()
 from tasks.stock_updater import StockUpdater
 from tasks.opening_price_updater import OpeningPriceUpdater
 from tasks.closing_price_updater import ClosingPriceUpdater
+from tasks.intraday_tracker import IntradayTracker
 
 class StockMarketService:
     """Main service class that orchestrates all stock market data tasks."""
@@ -28,6 +29,7 @@ class StockMarketService:
         self.stock_updater = StockUpdater()
         self.opening_price_updater = OpeningPriceUpdater()
         self.closing_price_updater = ClosingPriceUpdater()
+        self.intraday_tracker = IntradayTracker()
         
     def setup_logging(self):
         """Configure logging for the service."""
@@ -55,6 +57,9 @@ class StockMarketService:
         
         # Task 3: Closing price updates - runs at 4:05 PM EST (5 min after market close)
         schedule.every().day.at("16:05").do(self.run_task_3)
+        
+        # Task 4: Intraday tracking - runs every minute, but only tracks every 15 minutes during market hours
+        schedule.every().minute.do(self.run_task_4)
         
         self.logger.info("All tasks scheduled")
     
@@ -91,6 +96,20 @@ class StockMarketService:
             self.logger.error(f"Task 3 failed: {str(e)}")
             raise
     
+    def run_task_4(self, force=False):
+        """Task 4: Intraday price tracking."""
+        try:
+            result = self.intraday_tracker.track_intraday_prices(force)
+            
+            # Only log if actually processed (not skipped)
+            if not result.get('skipped', False):
+                self.logger.info(f"Task 4 completed: {result}")
+            
+            return result
+        except Exception as e:
+            self.logger.error(f"Task 4 failed: {str(e)}")
+            raise
+    
     def run_manual_task(self, task_number):
         """Run a specific task manually."""
         if task_number == 1:
@@ -99,6 +118,8 @@ class StockMarketService:
             return self.run_task_2(force=True)  # Force run for manual testing
         elif task_number == 3:
             return self.run_task_3(force=True)  # Force run for manual testing
+        elif task_number == 4:
+            return self.run_task_4(force=True)  # Force run for manual testing
         else:
             self.logger.error(f"Unknown task number: {task_number}")
             return False

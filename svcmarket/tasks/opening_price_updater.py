@@ -147,40 +147,44 @@ class OpeningPriceUpdater:
         try:
             today = datetime.now(self.market_timezone).date()
             
-            # Check if today's data already exists
-            check_query = """
-                SELECT id FROM daily 
-                WHERE stock_id = :stock_id AND date = :date
-            """
-            existing = db.execute_query(check_query, {'stock_id': stock_id, 'date': today})
-            
-            if existing:
-                # Update existing record
-                update_query = """
-                    UPDATE daily 
-                    SET opening_price = :opening_price,
-                        updated_at = CURRENT_TIMESTAMP
+            with db.get_session() as session:
+                from sqlalchemy import text
+                
+                # Check if today's data already exists
+                check_query = """
+                    SELECT id FROM daily 
                     WHERE stock_id = :stock_id AND date = :date
                 """
-                db.execute_query(update_query, {
-                    'opening_price': opening_price,
-                    'stock_id': stock_id,
-                    'date': today
-                })
-                logger.debug(f"Updated daily opening price for {symbol}")
-            else:
-                # Insert new daily record
-                insert_query = """
-                    INSERT INTO daily (stock_id, symbol, date, opening_price)
-                    VALUES (:stock_id, :symbol, :date, :opening_price)
-                """
-                db.execute_query(insert_query, {
-                    'stock_id': stock_id,
-                    'symbol': symbol,
-                    'date': today,
-                    'opening_price': opening_price
-                })
-                logger.debug(f"Inserted new daily record for {symbol}")
+                result = session.execute(text(check_query), {'stock_id': stock_id, 'date': today})
+                existing = result.fetchone()
+                
+                if existing:
+                    # Update existing record
+                    update_query = """
+                        UPDATE daily 
+                        SET opening_price = :opening_price,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE stock_id = :stock_id AND date = :date
+                    """
+                    session.execute(text(update_query), {
+                        'opening_price': opening_price,
+                        'stock_id': stock_id,
+                        'date': today
+                    })
+                    logger.debug(f"Updated daily opening price for {symbol}")
+                else:
+                    # Insert new daily record
+                    insert_query = """
+                        INSERT INTO daily (stock_id, symbol, date, opening_price)
+                        VALUES (:stock_id, :symbol, :date, :opening_price)
+                    """
+                    session.execute(text(insert_query), {
+                        'stock_id': stock_id,
+                        'symbol': symbol,
+                        'date': today,
+                        'opening_price': opening_price
+                    })
+                    logger.debug(f"Inserted new daily record for {symbol}")
             
             return True
             
