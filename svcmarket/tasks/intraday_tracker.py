@@ -245,9 +245,14 @@ class IntradayTracker:
                 else:
                     error_count += 1
                 
+                # Progress reporting every 200 stocks (since this runs more frequently)
+                if (success_count + error_count) % 200 == 0:
+                    logger.info(f"Intraday tracking - Progress: {success_count + error_count}/{len(stocks)} "
+                               f"(Success: {success_count}, Errors: {error_count})")
+                
                 # Small delay to avoid rate limiting
                 import time
-                time.sleep(0.05)  # Shorter delay since we're doing this more frequently
+                time.sleep(0.1)  # Slightly longer delay for large stock counts
                 
             except Exception as e:
                 logger.error(f"Unexpected error tracking {symbol}: {str(e)}")

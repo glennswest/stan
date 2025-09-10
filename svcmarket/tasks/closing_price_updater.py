@@ -268,9 +268,14 @@ class ClosingPriceUpdater:
                 else:
                     error_count += 1
                 
+                # Progress reporting every 100 stocks
+                if (success_count + error_count) % 100 == 0:
+                    logger.info(f"Closing prices - Progress: {success_count + error_count}/{len(stocks)} "
+                               f"(Success: {success_count}, Errors: {error_count})")
+                
                 # Small delay to avoid rate limiting
                 import time
-                time.sleep(0.1)
+                time.sleep(0.2)
                 
             except Exception as e:
                 logger.error(f"Unexpected error updating {symbol}: {str(e)}")

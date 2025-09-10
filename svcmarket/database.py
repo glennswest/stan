@@ -15,7 +15,7 @@ class Database:
     """Database connection manager."""
     
     def __init__(self):
-        self.db_host = os.getenv('DB_HOST', 'localhost')
+        self.db_host = os.getenv('DB_HOST', 'standb.gw.lo')
         self.db_port = os.getenv('DB_PORT', '3306')
         self.db_name = os.getenv('DB_NAME', 'stan')
         self.db_user = os.getenv('DB_USER', 'stan')
@@ -101,6 +101,8 @@ class Database:
                             previous_day_opening_price = :previous_day_opening_price,
                             previous_day_closing_price = :previous_day_closing_price,
                             exchange = :exchange,
+                            stock_cap = :stock_cap,
+                            stock_type = :stock_type,
                             updated_at = CURRENT_TIMESTAMP
                         WHERE symbol = :symbol
                     """
@@ -114,12 +116,12 @@ class Database:
                             symbol, avg_daily_volume, avg_daily_min_price,
                             avg_daily_max_price, beginning_of_year_price,
                             previous_day_opening_price, previous_day_closing_price,
-                            exchange
+                            exchange, stock_cap, stock_type
                         ) VALUES (
                             :symbol, :avg_daily_volume, :avg_daily_min_price,
                             :avg_daily_max_price, :beginning_of_year_price,
                             :previous_day_opening_price, :previous_day_closing_price,
-                            :exchange
+                            :exchange, :stock_cap, :stock_type
                         )
                     """
                     result = session.execute(text(insert_query), stock_data)
